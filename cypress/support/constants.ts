@@ -4,6 +4,15 @@ export const ENDPOINTS = {
   CREATE_RUN: "/api/testrun",
   DESKTOP: "/desktop",
 };
+export const RUN_TTL_MS = 55 * 60 * 1000; // 55 minutes in milliseconds
+
+export const TIMEOUTS = {
+  desktopLoad: 15000, // how long to wait for the desktop shell to appear
+  inviteModal: 20000, // how long to wait for the chat invite modal
+  chatWindow: 10000, // how long to wait for the chat window to open
+  agentPoll: 2000, // interval between agent status polls
+  agentMaxPolls: 15, // maximum number of status polls before failing
+};
 
 // MOCK_TEST
 export const PAYLOAD = {
