@@ -1,38 +1,36 @@
-/*
-Create a test run through the backend API. using POST: /api/testrun -> runId
-- check return status
-- check return runId is not empty
-*/
+// =============================================================================
+// Create a test run through the backend API.
+// =============================================================================
 
-import { BASE_URL, ENDPOINTS, INFO, PAYLOAD } from "../support/constant";
+import { BASE_URL, ENDPOINTS, INFO, PAYLOAD } from "../support/constants";
 
 describe("Objective 1 · POST /api/testrun — Create a test run", () => {
   // ── Test 1 — check Path
   it("return HTTP 201 with a runId and status pending", () => {
     cy.request({
       method: "POST",
-      url: `${BASE_URL}/api/testrun`,
+      url: `${BASE_URL}${ENDPOINTS.CREATE_RUN}`,
       headers: { "Content-Type": "application/json" },
       body: PAYLOAD,
       failOnStatusCode: false,
     }).then((res) => {
-      // ── CHECK 1: correct HTTP status ───────────────────────────────────────
+      // ── CHECK 1: correct HTTP status ──────────────────────────────────────
       expect(res.status, "HTTP 201 Created").to.eq(201);
 
-      // ── CHECK 2: runId exists in the response body ─────────────────────────
+      // ── CHECK 2: runId exists in the response body ────────────────────────
       expect(res.body, "body must contain runId").to.have.property("runId");
 
-      // ── CHECK 3: runId is a real non-empty string ──────────────────────────
+      // ── CHECK 3: runId is a real non-empty string ─────────────────────────
       expect(res.body.runId, "runId must be a non-empty string").to.be.a(
         "string",
       ).and.not.be.empty;
 
-      // ── CHECK 4: initial status is 'pending' ───────────────────────────────
+      // ── CHECK 4: initial status is 'pending' ──────────────────────────────
       expect(res.body.status, "initial run status must be 'pending'").to.eq(
         "pending",
       );
 
-      // ── CHECK 5: server echoes back the interactionId ──────────────────────
+      // ── CHECK 5: server echoes back the interactionId ─────────────────────
       const echoedId =
         res.body.interactionId ?? // top-level field
         res.body.interactionInformation?.interactionId; // or nested
@@ -40,14 +38,16 @@ describe("Objective 1 · POST /api/testrun — Create a test run", () => {
         INFO.interactionId,
       ); // "CHAT-10001"
 
-      // ── ACTION: save runId so other steps can use it ────────────────────────
+      // ── ACTION: save runId so other steps can use it ──────────────────────
+      // Using cy.createRun() from commands.ts persists this automatically
+      // but we save it here too so Test 1 is fully self-contained
       Cypress.env("runId", res.body.runId);
       Cypress.env("runCreatedAt", Date.now());
-      cy.log(`runId captured: ${res.body.runId}`);
+      cy.log(`[PASS] runId captured: ${res.body.runId}`);
     });
   });
 
-  // ── Test 2 — Negative: blank interactionId
+  // ── Test 2 — Negative: blank interactionId ───────────────────────────────
   it("rejects a payload with a blank interactionId -> HTTP 400", () => {
     cy.request({
       method: "POST",
@@ -72,7 +72,7 @@ describe("Objective 1 · POST /api/testrun — Create a test run", () => {
     });
   });
 
-  // ── Test 3— Negative: missing interactionInformation block ───────────────
+  // ── Test 3 — Negative: missing interactionInformation block ──────────────
   it("rejects a payload with no interactionInformation block → HTTP 400 or 422", () => {
     // Sending only chatTranscript with no interactionInformation at all
     cy.request({
@@ -89,11 +89,11 @@ describe("Objective 1 · POST /api/testrun — Create a test run", () => {
         "missing interactionInformation must be rejected",
       ).to.be.oneOf([400, 422]);
 
-      cy.log("✅  Missing interactionInformation block correctly rejected");
+      cy.log("[PASS] Missing interactionInformation block correctly rejected");
     });
   });
 
-  // ── Test 4: completely empty body ──────────────────────────────
+  // ── Test 4 — Negative: completely empty body ─────────────────────────────
   it("rejects an empty body → HTTP 400 or 422", () => {
     cy.request({
       method: "POST",
@@ -106,5 +106,4 @@ describe("Objective 1 · POST /api/testrun — Create a test run", () => {
       expect(res.status, "empty body must be rejected").to.be.oneOf([400, 422]);
     });
   });
-  
 });

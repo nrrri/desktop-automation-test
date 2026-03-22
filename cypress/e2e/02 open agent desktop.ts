@@ -1,29 +1,14 @@
-/*
-Open desktop from desktop/:runId after a run is created
-*/
+// =============================================================================
+// Open desktop from desktop/:runId after a run is created
+// =============================================================================
 
-import { BASE_URL, ENDPOINTS, INFO, PAYLOAD } from "../support/constant";
-
-const createRun = () =>
-  cy
-    .request({
-      method: "POST",
-      url: `${BASE_URL}${ENDPOINTS.CREATE_RUN}`,
-      headers: { "Content-Type": "application/json" },
-      body: PAYLOAD,
-      failOnStatusCode: false,
-    })
-    .then((res) => {
-      expect(
-        res.status,
-        "prerequisite: POST /api/testrun must return 201",
-      ).to.eq(201);
-      expect(res.body.runId, "prerequisite: runId must exist").to.be.a("string")
-        .and.not.be.empty;
-      Cypress.env("runId", res.body.runId);
-      Cypress.env("runCreatedAt", Date.now());
-      cy.log(`[PASS] runId ready: ${res.body.runId}`);
-    });
+import {
+  BASE_URL,
+  ENDPOINTS,
+  INFO,
+  AUTH,
+  TIMEOUTS,
+} from "../support/constants";
 
 // checking if we have valid runId
 before(() => {
@@ -32,12 +17,13 @@ before(() => {
   // This prevents confusing profile-related failures in Tests 3–7.
   expect(
     INFO.authenticationStatus,
-    "authenticationStatus must be 'Authenticated' to trigger profile lookup",
-  ).to.eq("Authenticated");
+    `authenticationStatus must be "${AUTH.authenticated}" to trigger profile lookup — ` +
+      `got "${INFO.authenticationStatus}" — fix PAYLOAD in constants.ts`,
+  ).to.eq(AUTH.authenticated);
 
   // Only create a new run if one does not already exist from a previous spec
   if (!Cypress.env("runId")) {
-    return createRun();
+    cy.createRun(); // ← reusable command from commands.ts
   }
 });
 
@@ -56,7 +42,7 @@ describe("Objective 2 · /desktop/:runId — Open the mock agent desktop", () =>
 
     // ── CHECK 1: desktop container is visible ────────────────────────────────
     cy.get("[data-testid='desktop-container']", {
-      timeout: Infinity, // todo: tb updated
+      timeout: TIMEOUTS.desktopLoad,
     })
       .should("exist")
       .and("be.visible");
@@ -76,13 +62,13 @@ describe("Objective 2 · /desktop/:runId — Open the mock agent desktop", () =>
   });
 
   // ! CHECK UI render
-  // ── Test 3 — Channel badge ────────────────────────────────
+  // ── Test 3 — Channel badge ────────────────────────────────────────────────
   it("header shows channel: Chat", () => {
     cy.get("[data-testid='channel-badge']")
       .should("be.visible")
       .and("contain.text", INFO.channel); // "Chat"
 
-    cy.log(`[PASS]  Channel: ${INFO.channel}`);
+    cy.log(`[PASS] Channel: ${INFO.channel}`);
   });
 
   // ── Test 4 — Header shows journey name from the payload ────────────────────
@@ -91,7 +77,7 @@ describe("Objective 2 · /desktop/:runId — Open the mock agent desktop", () =>
       .should("be.visible")
       .and("contain.text", INFO.journeyName); // "Billing Support"
 
-    cy.log(`[PASS]  Journey: ${INFO.journeyName}`);
+    cy.log(`[PASS] Journey: ${INFO.journeyName}`);
   });
 
   // ── Test 5 — All three header fields are correct in one assertion ───────────
@@ -108,7 +94,7 @@ describe("Objective 2 · /desktop/:runId — Open the mock agent desktop", () =>
     );
     cy.get("[data-testid='queue-name']").should("contain.text", INFO.queueName);
 
-    cy.log("[PASS]  All header fields match the payload");
+    cy.log("[PASS] All header fields match the payload");
   });
 
   // ! CHECK ERROR Id
@@ -125,7 +111,7 @@ describe("Objective 2 · /desktop/:runId — Open the mock agent desktop", () =>
       { timeout: 8000 },
     ).should("be.visible");
 
-    cy.log("[PASS]  Error state shown for unknown runId");
+    cy.log("[PASS] Error state shown for unknown runId");
   });
 
   // ── Test 7 — Negative: missing runId segment in the URL ────────────────────
@@ -139,6 +125,6 @@ describe("Objective 2 · /desktop/:runId — Open the mock agent desktop", () =>
       { timeout: 8000 },
     ).should("exist");
 
-    cy.log("[PASS]  No crash when runId segment is missing");
+    cy.log("[PASS] No crash when runId segment is missing");
   });
 });
