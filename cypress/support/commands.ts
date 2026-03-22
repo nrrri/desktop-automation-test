@@ -82,11 +82,11 @@ Cypress.Commands.add("guardTTL", () => {
 
   if (age > RUN_TTL_MS) {
     cy.log(
-      "♻️  cy.guardTTL: run is near the 60-min purge limit — creating a fresh one",
+      "cy.guardTTL: run is near the 60-min purge limit — creating a fresh one",
     );
     cy.createRun();
   } else {
-    cy.log(`✅  cy.guardTTL: run is fresh (age: ${Math.round(age / 1000)}s)`);
+    cy.log(`cy.guardTTL: run is fresh (age: ${Math.round(age / 1000)}s)`);
   }
 });
 
@@ -106,5 +106,5 @@ Cypress.Commands.add("openDesktop", () => {
   cy.get("[data-testid='desktop-container']", { timeout: 15000 }).should(
     "be.visible",
   );
-  cy.log(`✅  cy.openDesktop: desktop loaded for runId ${runId}`);
+  cy.log(`cy.openDesktop: desktop loaded for runId ${runId}`);
 });
