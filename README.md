@@ -117,22 +117,3 @@ so the client knows what lifecycle stage the run is in.
 **Expected:** { runId: "...", status: "pending" }
 **Actual:** { runId: "..." }
 **Fix:** Include status: "pending" in the POST /api/testrun response body.
-
----
-
-### BUG-001 — Message count badge freezes after 35 messages
-
-**Description:**
-The message count badge stops incrementing once it reaches 35. New messages continue to appear in the chat window but the badge counter stays frozen at 35.
-
-**Steps to reproduce:**
-
-1. POST payload to `/api/testrun` → get `runId`
-2. Open `/desktop/:runId` and accept the chat invite
-3. Send messages until the badge reads 35
-4. Send 5 more messages
-5. Badge stays at 35 — the chat window correctly shows 40+ entries
-
-**Expected:** Badge reflects the true count — 36, 37, 38 and so on
-**Actual:** Badge frozen at 35
-**Fix:** Remove or raise the upper-bound cap in the badge counter state
