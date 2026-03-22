@@ -117,3 +117,13 @@ so the client knows what lifecycle stage the run is in.
 **Expected:** { runId: "...", status: "pending" }
 **Actual:** { runId: "..." }
 **Fix:** Include status: "pending" in the POST /api/testrun response body.
+
+### BUG-002 — startTime displayed as raw ISO 8601 string
+
+Test: 04-validate-interaction-and-profile.cy.ts — Objective 4d, Test 8
+**Description:**
+The startTime field from the payload ("2026-03-11T10:30:00Z") is shown verbatim on the desktop instead of being formatted into a human-readable string such as "10:30 AM UTC". The date formatting utility is not being called for this field.
+
+**Expected:** "10:30 AM UTC" or locale-equivalent human-readable format
+**Actual:** "2026-03-11T10:30:00Z" — raw ISO 8601 string shown verbatim
+**Fix:** Pass startTime through the existing date formatter before rendering

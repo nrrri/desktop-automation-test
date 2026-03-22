@@ -3,7 +3,13 @@
 // No imports needed in test files — these are globally registered here.
 // =============================================================================
 
-import { BASE_URL, ENDPOINTS, PAYLOAD, RUN_TTL_MS } from "./constants";
+import {
+  BASE_URL,
+  ENDPOINTS,
+  PAYLOAD,
+  RUN_TTL_MS,
+  TIMEOUTS,
+} from "./constants";
 
 // -----------------------------------------------------------------------------
 // Tell TypeScript these commands exist on the cy object
@@ -39,6 +45,14 @@ declare global {
        *   cy.openDesktop()
        */
       openDesktop(): Chainable<void>;
+      /**
+       * enable chat window
+       * Requires a runId to already exist in Cypress.env.
+       *
+       * Usage:
+       *   cy.openAndAccept()
+       */
+      openAndAccept(): Chainable<void>;
     }
   }
 }
@@ -110,4 +124,13 @@ Cypress.Commands.add("openDesktop", () => {
     "be.visible",
   );
   cy.log(`cy.openDesktop: desktop loaded for runId ${runId}`);
+});
+
+Cypress.Commands.add("openAndAccept", () => {
+  cy.openDesktop();
+  cy.get("select[data-testid='agent-status-select']").select("Ready");
+  cy.get("[data-testid='chat-invite']", {
+    timeout: TIMEOUTS.inviteModal,
+  }).should("be.visible");
+  cy.get("[data-testid='accept-chat-invite']").click();
 });

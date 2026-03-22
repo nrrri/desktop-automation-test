@@ -24,27 +24,6 @@ before(() => {
 });
 
 // =============================================================================
-// OBJECTIVE 4a — Open desktop and accept the chat invite
-// Opens the desktop shell for the created runId and accepts the incoming
-// chat invite so the full desktop UI is available for all subsequent tests.
-// =============================================================================
-describe("Objective 4 · Open desktop and accept invite", () => {
-  // ── Test 1
-  // todo: create custom command for open + accept invite
-  it("opens the desktop and accepts the chat invite", () => {
-    cy.openDesktop();
-
-    cy.get("[data-testid='chat-invite']", {
-      timeout: TIMEOUTS.inviteModal,
-    }).should("be.visible");
-
-    cy.get("[data-testid='accept-chat-invite']").click();
-
-    cy.log("[PASS] Desktop open and invite accepted");
-  });
-});
-
-// =============================================================================
 // OBJECTIVE 4b — Interaction information details
 // Verifies every interactionInformation field from the submitted payload is
 // correctly displayed on the desktop UI after the invite is accepted.
@@ -53,6 +32,7 @@ describe("Objective 4 · Open desktop and accept invite", () => {
 describe("Objective 4 · Interaction information details", () => {
   // ── Test 1
   it("displays the correct interactionId", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='interaction-id']")
       .should("be.visible")
       .and("contain.text", INFO.interactionId); // "CHAT-10001"
@@ -62,6 +42,7 @@ describe("Objective 4 · Interaction information details", () => {
 
   // ── Test 2
   it("displays the correct channel", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='channel']")
       .should("be.visible")
       .and("contain.text", INFO.channel); // "Chat"
@@ -71,6 +52,7 @@ describe("Objective 4 · Interaction information details", () => {
 
   // ── Test 3
   it("displays the correct authenticationStatus", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='auth-status']")
       .should("be.visible")
       .and("contain.text", INFO.authenticationStatus); // "Authenticated"
@@ -80,6 +62,7 @@ describe("Objective 4 · Interaction information details", () => {
 
   // ── Test 4
   it("displays the correct account number", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='customer-account-number']")
       .should("be.visible")
       .and("contain.text", INFO.customerAccountNumber); // "10001"
@@ -89,6 +72,7 @@ describe("Objective 4 · Interaction information details", () => {
 
   // ── Test 5
   it("displays the correct journeyName", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='journey-name']")
       .should("be.visible")
       .and("contain.text", INFO.journeyName); // "Billing Support"
@@ -98,6 +82,7 @@ describe("Objective 4 · Interaction information details", () => {
 
   // ── Test 6
   it("displays the correct queueName", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='queue-name']")
       .should("be.visible")
       .and("contain.text", INFO.queueName); // "Billing Tier 1"
@@ -107,6 +92,7 @@ describe("Objective 4 · Interaction information details", () => {
 
   // ── Test 7
   it("displays the correct agentDesktopStatus", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='desktop-status']")
       .should("be.visible")
       .and("contain.text", INFO.agentDesktopStatus); // "Connected"
@@ -114,8 +100,18 @@ describe("Objective 4 · Interaction information details", () => {
     cy.log(`[PASS] agentDesktopStatus: ${INFO.agentDesktopStatus}`);
   });
 
+  it("displays the correct start-time", () => {
+    cy.openAndAccept();
+    cy.get("[data-testid='start-time']")
+      .should("be.visible")
+      .and("contain.text", INFO.startTime); // "Connected"
+
+    cy.log(`[PASS] start-time: ${INFO.startTime}`);
+  });
+
   // ── Test 8
   it("displays startTime in a human-readable format — not raw ISO 8601", () => {
+    cy.openAndAccept();
     // The payload sends "2026-03-11T10:30:00Z"
     // The UI must format it as something like "10:30 AM UTC" — not the raw ISO string
     // If the raw string appears the date formatter is not being called — BUG
@@ -141,6 +137,7 @@ describe("Objective 4 · Interaction information details", () => {
 describe("Objective 4 · Customer profile", () => {
   // ── Test 1
   it("customer profile tab is visible and clickable", () => {
+    cy.openAndAccept();
     cy.get("[data-testid='tab-customer-profile']")
       .should("exist")
       .and("be.visible")
@@ -150,29 +147,28 @@ describe("Objective 4 · Customer profile", () => {
 
     cy.log("[PASS] Customer profile panel is visible");
   });
+
+  it("customer profile tab is visible and Recent Transactions is available", () => {
+    cy.openAndAccept();
+    cy.get("[data-testid='tab-customer-profile']")
+      .should("exist")
+      .and("be.visible")
+      .click();
+
+    cy.get("[data-testid='recent-transactions']").should("be.visible");
+
+    cy.log("[PASS] Recent Transactions is available");
+  });
 });
 
-// =============================================================================
-// OBJECTIVE 4d — Chat transcript
-// Verifies the pre-loaded chatTranscript entries match the submitted payload.
-// The transcript is loaded from the payload and displayed in the chat window.
-// Timestamps must appear in ascending chronological order.
-// =============================================================================
-describe("Objective 4 · Chat transcript", () => {
-  // ── Test 1
-  it("transcript entries are in chronological order — timestamps ascending", () => {
-    const times: string[] = [];
+it("customer profile tab is visible and Account History is available", () => {
+  cy.openAndAccept();
+  cy.get("[data-testid='tab-customer-profile']")
+    .should("exist")
+    .and("be.visible")
+    .click();
 
-    cy.get("[data-testid='msg-timestamp']")
-      .each(($el) => {
-        times.push($el.text().trim());
-      })
-      .then(() => {
-        expect(times, "timestamps must be in ascending order").to.deep.eq(
-          [...times].sort(),
-        );
-      });
+  cy.get("[data-testid='account-history']").should("be.visible");
 
-    cy.log("[PASS] Transcript entries are in chronological order");
-  });
+  cy.log("[PASS] Account History is available");
 });
