@@ -14,6 +14,11 @@ export const TIMEOUTS = {
   agentMaxPolls: 15, // maximum number of status polls before failing
 };
 
+export const AUTH = {
+  authenticated: "Authenticated",
+  unauthenticated: "Not Authenticated",
+};
+
 // MOCK_TEST
 export const PAYLOAD = {
   interactionInformation: {
