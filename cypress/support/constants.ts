@@ -1,5 +1,5 @@
 // dummy url
-export const BASE_URL = "http://localhost:8080";
+export const BASE_URL = Cypress.env("BASE_URL");
 export const ENDPOINTS = {
   CREATE_RUN: "/api/testrun",
   DESKTOP: "/desktop",
