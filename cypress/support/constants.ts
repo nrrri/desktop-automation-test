@@ -19,7 +19,7 @@ export const AUTH = {
   unauthenticated: "Not Authenticated",
 };
 
-// MOCK_TEST
+// MOCK_TEST - regalar payload
 export const PAYLOAD = {
   interactionInformation: {
     interactionId: "CHAT-10001",
@@ -51,4 +51,6 @@ export const PAYLOAD = {
 };
 // -------------------------
 
+// From Payload
 export const INFO = PAYLOAD.interactionInformation;
+export const TRANSCRIPT = PAYLOAD.chatTranscript;
