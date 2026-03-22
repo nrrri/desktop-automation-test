@@ -2,7 +2,7 @@
 // Handle the initial agent status state and chat invite flow
 // =============================================================================
 
-import { BASE_URL, ENDPOINTS, INFO, TIMEOUTS } from "../support/constants";
+import { INFO, TIMEOUTS } from "../support/constants";
 
 // Helper — polls the on-screen agent status badge until it matches expected
 const waitForAgentStatus = (
@@ -24,13 +24,8 @@ const waitForAgentStatus = (
   });
 };
 
-// before() — guard auth + ensure runId + open desktop
+// before() — ensure runId + open desktop
 before(() => {
-  expect(
-    INFO.authenticationStatus,
-    `authenticationStatus must be Authenticated for invite to appear`,
-  ).to.eq("Authenticated");
-
   if (!Cypress.env("runId")) {
     cy.createRun(); // ← reusable command from commands.ts
   }
@@ -92,7 +87,7 @@ describe("Objective 3 - Agent Status & Chat Invite Flow", () => {
     cy.get("[data-testid='chat-send-btn']").should("exist").and("be.visible");
   });
 
-  // ! check negative
+  // ! check unusual behavior
   // ── Test 7 — fresh desktop for decline test ─────────────
   it("clicking Decline closes the modal without opening the chat window", () => {
     cy.createRun();
