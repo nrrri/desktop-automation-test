@@ -27,7 +27,7 @@ before(() => {
 // OBJECTIVE 4 — Validate interaction info, profile data and transcript
 // =============================================================================
 describe("Objective 4 · Validate desktop content against the payload", () => {
-  // ── Test 1 — Open desktop and accept invite  ← ONLY cy.visit in this file ─
+  // ── Test 1 — Open desktop and accept invite
   it("opens the desktop and accepts the chat invite", () => {
     cy.openDesktop();
 

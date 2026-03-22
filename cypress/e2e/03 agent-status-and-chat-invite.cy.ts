@@ -27,14 +27,14 @@ const waitForAgentStatus = (
 // before() — ensure runId + open desktop
 before(() => {
   if (!Cypress.env("runId")) {
-    cy.createRun(); // ← reusable command from commands.ts
+    cy.createRun();
   }
 });
 
 describe("Objective 3 - Agent Status & Chat Invite Flow", () => {
   // ── Test 1 — cy.visit: first load of desktop for this spec ───────────────
   it("desktop shows agentDesktopStatus 'Connected' from the payload on load", () => {
-    cy.openDesktop(); // ← reusable command from commands.ts
+    cy.openDesktop();
 
     cy.get("[data-testid='agent-desktop-status']")
       .should("be.visible")
@@ -52,7 +52,7 @@ describe("Objective 3 - Agent Status & Chat Invite Flow", () => {
   });
 
   // ── Tests 3 ───────────────────────────────────
-  it.only("invite modal displays the correct queue name from the payload", () => {
+  it("invite modal displays the correct queue name from the payload", () => {
     cy.get("[data-testid='chat-invite-queue']")
       .should("be.visible")
       .and("contain.text", INFO.queueName); // "Billing Tier 1"
