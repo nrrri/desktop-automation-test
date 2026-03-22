@@ -103,7 +103,10 @@ Cypress.Commands.add("openDesktop", () => {
   ).to.be.a("string").and.not.be.empty;
 
   cy.visit(`${BASE_URL}${ENDPOINTS.DESKTOP}/${runId}`);
-  cy.get("[data-testid='desktop-container']", { timeout: 15000 }).should(
+  cy.get("[data-testid='desktop-header']", { timeout: 15000 }).should(
+    "be.visible",
+  );
+  cy.get("[data-testid='chat-transcript']", { timeout: 15000 }).should(
     "be.visible",
   );
   cy.log(`cy.openDesktop: desktop loaded for runId ${runId}`);

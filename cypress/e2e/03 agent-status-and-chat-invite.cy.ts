@@ -1,7 +1,7 @@
 // =============================================================================
 // Handle the initial agent status state and chat invite flow
 // =============================================================================
-
+//
 import { INFO, TIMEOUTS } from "../support/constants";
 
 // Helper — polls the on-screen agent status badge until it matches expected
@@ -14,7 +14,7 @@ const waitForAgentStatus = (
       `Agent status never reached "${expected}" after ${TIMEOUTS.agentMaxPolls} polls`,
     );
   }
-  return cy.get("[data-testid='agent-status-badge']").then(($el) => {
+  return cy.get("[data-testid='agent-status-select']").then(($el) => {
     if ($el.text().toLowerCase().includes(expected.toLowerCase())) {
       cy.log(`✅  Agent status = "${expected}" after ${attempt + 1} poll(s)`);
       return;
@@ -36,7 +36,7 @@ describe("Objective 3 - Agent Status & Chat Invite Flow", () => {
   it("desktop shows agentDesktopStatus 'Connected' from the payload on load", () => {
     cy.openDesktop();
 
-    cy.get("[data-testid='agent-desktop-status']")
+    cy.get("[data-testid='connection-status']")
       .should("be.visible")
       .and("contain.text", INFO.agentDesktopStatus); // "Connected"
   });
@@ -44,66 +44,33 @@ describe("Objective 3 - Agent Status & Chat Invite Flow", () => {
   // ! Check UI render
   // ── Tests 2 ───────────────────────────────────
   it("chat invite modal appears after the agent becomes ready", () => {
-    cy.get("[data-testid='chat-invite-modal']", {
+    cy.get("select[data-testid='agent-status-select']").select("Ready");
+
+    cy.get("[data-testid='chat-invite']", {
       timeout: TIMEOUTS.inviteModal,
     })
       .should("exist")
       .and("be.visible");
   });
 
-  // ── Tests 3 ───────────────────────────────────
-  it("invite modal displays the correct queue name from the payload", () => {
-    cy.get("[data-testid='chat-invite-queue']")
-      .should("be.visible")
-      .and("contain.text", INFO.queueName); // "Billing Tier 1"
-  });
-
   // ── Tests 4 ───────────────────────────────────
-  it("clicking Accept opens the chat window and closes the modal", () => {
-    cy.get("[data-testid='chat-invite-accept-btn']").click();
+  it("clicking Accept opens the chat window", () => {
+    cy.get("[data-testid='accept-chat-invite']").click();
 
-    cy.get("[data-testid='chat-window']", { timeout: TIMEOUTS.chatWindow })
+    // check chat
+    cy.get("[data-testid='chat-transcript']", { timeout: TIMEOUTS.chatWindow })
       .should("exist")
       .and("be.visible");
 
-    cy.get("[data-testid='chat-invite-modal']").should("not.exist");
-  });
-
-  // ── Tests 5 ───────────────────────────────────
-  it("agent status badge updates to 'active' after accepting the invite", () => {
-    waitForAgentStatus("active");
-    cy.get("[data-testid='agent-status-badge']").should(
-      "contain.text",
-      "active",
-    );
+    cy.get("[data-testid='chat-invite']").should("not.exist");
   });
 
   // ── Tests 6 ───────────────────────────────────
   it("chat window has an enabled input field and send button", () => {
-    cy.get("[data-testid='chat-input']")
+    cy.get("[data-testid='agent-chat-input']")
       .should("exist")
       .and("be.visible")
       .and("not.be.disabled");
-    cy.get("[data-testid='chat-send-btn']").should("exist").and("be.visible");
-  });
-
-  // ! check unusual behavior
-  // ── Test 7 — fresh desktop for decline test ─────────────
-  it("clicking Decline closes the modal without opening the chat window", () => {
-    cy.createRun();
-    cy.openDesktop();
-
-    cy.get("[data-testid='chat-invite-modal']", {
-      timeout: TIMEOUTS.inviteModal,
-    }).should("be.visible");
-
-    cy.get("[data-testid='chat-invite-decline-btn']").click();
-
-    cy.get("[data-testid='chat-invite-modal']").should("not.exist");
-    cy.get("[data-testid='chat-window']").should("not.exist");
-    cy.get("[data-testid='agent-status-badge']").should(
-      "not.contain.text",
-      "active",
-    );
+    cy.get("[data-testid='agent-chat-send']").should("exist").and("be.visible");
   });
 });

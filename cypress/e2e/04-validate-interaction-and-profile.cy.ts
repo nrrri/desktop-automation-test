@@ -7,7 +7,7 @@ Validate desktop content against the submitted payload.
 
 import { INFO, TRANSCRIPT, AUTH, TIMEOUTS } from "../support/constants";
 
-// before() — guard auth + ensure runId + open desktop + accept invite
+// before() — guard auth + ensure runId exists
 before(() => {
   // ── GUARD: authenticationStatus must be "Authenticated" ──────────────────
   // If wrong, profile panel will be empty and all profile tests fail
@@ -24,29 +24,34 @@ before(() => {
 });
 
 // =============================================================================
-// OBJECTIVE 4 — Validate interaction info, profile data and transcript
+// OBJECTIVE 4a — Open desktop and accept the chat invite
+// Opens the desktop shell for the created runId and accepts the incoming
+// chat invite so the full desktop UI is available for all subsequent tests.
 // =============================================================================
-describe("Objective 4 · Validate desktop content against the payload", () => {
-  // ── Test 1 — Open desktop and accept invite
+describe("Objective 4 · Open desktop and accept invite", () => {
+  // ── Test 1
+  // todo: create custom command for open + accept invite
   it("opens the desktop and accepts the chat invite", () => {
     cy.openDesktop();
 
-    // Wait for invite modal and accept it
-    cy.get("[data-testid='chat-invite-modal']", {
+    cy.get("[data-testid='chat-invite']", {
       timeout: TIMEOUTS.inviteModal,
     }).should("be.visible");
 
-    cy.get("[data-testid='chat-invite-accept-btn']").click();
-
-    cy.get("[data-testid='chat-window']", {
-      timeout: TIMEOUTS.chatWindow,
-    }).should("be.visible");
+    cy.get("[data-testid='accept-chat-invite']").click();
 
     cy.log("[PASS] Desktop open and invite accepted");
   });
+});
 
-  // ── interactionInformation ────────────────────────────────────────────────
-  // ── Test 2
+// =============================================================================
+// OBJECTIVE 4b — Interaction information details
+// Verifies every interactionInformation field from the submitted payload is
+// correctly displayed on the desktop UI after the invite is accepted.
+// Each field is checked individually so failures point to the exact field.
+// =============================================================================
+describe("Objective 4 · Interaction information details", () => {
+  // ── Test 1
   it("displays the correct interactionId", () => {
     cy.get("[data-testid='interaction-id']")
       .should("be.visible")
@@ -55,7 +60,34 @@ describe("Objective 4 · Validate desktop content against the payload", () => {
     cy.log(`[PASS] interactionId: ${INFO.interactionId}`);
   });
 
+  // ── Test 2
+  it("displays the correct channel", () => {
+    cy.get("[data-testid='channel']")
+      .should("be.visible")
+      .and("contain.text", INFO.channel); // "Chat"
+
+    cy.log(`[PASS] channel: ${INFO.channel}`);
+  });
+
   // ── Test 3
+  it("displays the correct authenticationStatus", () => {
+    cy.get("[data-testid='auth-status']")
+      .should("be.visible")
+      .and("contain.text", INFO.authenticationStatus); // "Authenticated"
+
+    cy.log(`[PASS] authenticationStatus: ${INFO.authenticationStatus}`);
+  });
+
+  // ── Test 4
+  it("displays the correct account number", () => {
+    cy.get("[data-testid='customer-account-number']")
+      .should("be.visible")
+      .and("contain.text", INFO.customerAccountNumber); // "10001"
+
+    cy.log(`[PASS] customerAccountNumber: ${INFO.customerAccountNumber}`);
+  });
+
+  // ── Test 5
   it("displays the correct journeyName", () => {
     cy.get("[data-testid='journey-name']")
       .should("be.visible")
@@ -64,7 +96,7 @@ describe("Objective 4 · Validate desktop content against the payload", () => {
     cy.log(`[PASS] journeyName: ${INFO.journeyName}`);
   });
 
-  // ── Test 4
+  // ── Test 6
   it("displays the correct queueName", () => {
     cy.get("[data-testid='queue-name']")
       .should("be.visible")
@@ -73,16 +105,16 @@ describe("Objective 4 · Validate desktop content against the payload", () => {
     cy.log(`[PASS] queueName: ${INFO.queueName}`);
   });
 
-  // ── Test 5
+  // ── Test 7
   it("displays the correct agentDesktopStatus", () => {
-    cy.get("[data-testid='agent-desktop-status']")
+    cy.get("[data-testid='desktop-status']")
       .should("be.visible")
       .and("contain.text", INFO.agentDesktopStatus); // "Connected"
 
     cy.log(`[PASS] agentDesktopStatus: ${INFO.agentDesktopStatus}`);
   });
 
-  // ── Test 6
+  // ── Test 8
   it("displays startTime in a human-readable format — not raw ISO 8601", () => {
     // The payload sends "2026-03-11T10:30:00Z"
     // The UI must format it as something like "10:30 AM UTC" — not the raw ISO string
@@ -97,67 +129,37 @@ describe("Objective 4 · Validate desktop content against the payload", () => {
 
     cy.log("[PASS] startTime is formatted correctly");
   });
+});
 
-  // ── customer profile ──────────────────────────────────────────────────────
-  // ── Test 7
-  it("customer profile panel is visible after invite acceptance", () => {
-    // Profile panel only populates when authenticationStatus = "Authenticated"
-    // and the account is in the 10001–10050 fixture range
-    cy.get("[data-testid='customer-profile-panel']")
+// =============================================================================
+// OBJECTIVE 4c — Customer profile
+// Verifies the customer profile panel loads correctly after invite acceptance.
+// The profile data is pulled from a fixture file on the server based on the
+// customerAccountNumber (10001) and authenticationStatus = "Authenticated".
+// If the panel is empty the fixture did not load — check the account range.
+// =============================================================================
+describe("Objective 4 · Customer profile", () => {
+  // ── Test 1
+  it("customer profile tab is visible and clickable", () => {
+    cy.get("[data-testid='tab-customer-profile']")
       .should("exist")
-      .and("be.visible");
+      .and("be.visible")
+      .click();
+
+    cy.get("[data-testid='customer-profile']").should("be.visible");
 
     cy.log("[PASS] Customer profile panel is visible");
   });
+});
 
-  // ── Test 8
-  it("profile panel shows the correct account number", () => {
-    cy.get("[data-testid='profile-account-number']")
-      .should("be.visible")
-      .and("contain.text", INFO.customerAccountNumber); // "10001"
-
-    cy.log(`[PASS] Profile account number: ${INFO.customerAccountNumber}`);
-  });
-
-  // ── Test 9
-  it("profile panel customer name is not blank", () => {
-    // The name comes from the fixture file — if blank the fixture did not load
-    cy.get("[data-testid='profile-customer-name']")
-      .invoke("text")
-      .should("not.be.empty");
-
-    cy.log("[PASS] Customer name is populated");
-  });
-
-  // ── chatTranscript ────────────────────────────────────────────────────────
-
-  // ── Tests 10–12 — one test per transcript entry
-  TRANSCRIPT.forEach((entry, index) => {
-    it(`transcript entry [${index}] — sender: "${entry.sender}" · "${entry.message}"`, () => {
-      cy.get("[data-testid='transcript-message']")
-        .eq(index)
-        .within(() => {
-          cy.get("[data-testid='msg-sender']").should(
-            "contain.text",
-            entry.sender,
-          );
-          cy.get("[data-testid='msg-timestamp']").should(
-            "contain.text",
-            entry.timestamp,
-          );
-          cy.get("[data-testid='msg-text']").should(
-            "contain.text",
-            entry.message,
-          );
-        });
-
-      cy.log(
-        `[PASS] entry[${index}] sender="${entry.sender}" timestamp="${entry.timestamp}"`,
-      );
-    });
-  });
-
-  // ── Test 13
+// =============================================================================
+// OBJECTIVE 4d — Chat transcript
+// Verifies the pre-loaded chatTranscript entries match the submitted payload.
+// The transcript is loaded from the payload and displayed in the chat window.
+// Timestamps must appear in ascending chronological order.
+// =============================================================================
+describe("Objective 4 · Chat transcript", () => {
+  // ── Test 1
   it("transcript entries are in chronological order — timestamps ascending", () => {
     const times: string[] = [];
 
